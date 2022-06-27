@@ -1,24 +1,19 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hello, Othello!</title>
-  <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css"/>
   <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
-  <py-env>
-  </py-env>
 </head>
 <body>
-  <h1 id="hup">Pyscript Othello!</h1>
-  <table id="board" style='border: 1px solid black'>
-  </table>
+  <h1 id="header">Pyscript Othello!</h1>
+  <table id="board" style='border: 1px solid black'></table>
   <py-script>
 import pyodide
 
 directions = [(1, 1), (-1, 1), (0, 1), (1, -1), (-1, -1), (0, -1), (1, 0), (-1, 0)]
 
-def do_flip(x, y):
+def do_flip(x, y, color):
     document.getElementById('%d_%d' % (x, y)).color = color
     img = document.getElementById('img%d_%d' % (x, y))
     if color == 'white':
@@ -46,71 +41,59 @@ def flip_stones(move):
              x, y = move[0]+direction[0], move[1]+direction[1]
              id_ = '%d_%d' % (x, y)
              while document.getElementById('%d_%d' % (x, y)).color != color:
-                 do_flip(x, y)
+                 do_flip(x, y, color)
                  x, y = x+direction[0], y+direction[1]
                  id = '%d_%d' % (x, y)
-    do_flip(move[0], move[1])
+    do_flip(move[0], move[1], color)
 
 def possible_move(x, y):
     td = document.getElementById('%d_%d' % (x, y))
-    if td.color != 'empty':
-        return False
-    for direction in directions:
-        if flip_in_direction(x, y, direction):
-            return True
-    return False
+    if td.color == 'empty':
+        for direction in directions:
+            if flip_in_direction(x, y, direction):
+                return True
 
 def on_click(e):
     global color
-    try:
-        if e.target.id.startswith('img'):
+    title = document.getElementById('header')
+    if e.target.id.startswith('img'):
+        title.innerHTML = 'ILLEGAL!'
+        title.style.background = 'red'
+    else:
+        x, y = [int(i) for i in e.target.id.split('_')]
+        if possible_move(x, y):
+            flip_stones((x, y))
+            color = 'black' if color == 'white' else 'white'
+            title.innerHTML = 'Othello'
+            title.style.background = ''
+        else:
             title.innerHTML = 'ILLEGAL!'
             title.style.background = 'red'
-        else:
-            x, y = [int(i) for i in e.target.id.split('_')]
-            if possible_move(x, y):
-                flip_stones((x, y))
-                if color == 'black':
-                    color = 'white'
-                else:
-                    color = 'black'
-                title.innerHTML = 'Othello'
-                title.style.background = ''
-            else:
-                title.innerHTML = 'ILLEGAL!'
-                title.style.background = 'red'
-    except Exception as e:
-        title.innerHTML = e
 
 board = document.getElementById('board')
-title = document.getElementById('hup')
-title.innerHTML = 'Othello'
-color = 'black'
-
 for i in range(8):
     tr = document.createElement('tr')
     for j in range(8):
         td = document.createElement('td')
         td.style.background = 'green'
         td.style.border = '1px solid black'
-        td.width = 80
-        td.height = 80
+        td.width = td.height = 80
         td.align = 'center'
-        td.pos = (i, j)
-        td.addEventListener('click', pyodide.create_proxy(on_click))
         td.id = '%d_%d' % (i, j)
-        img = document.createElement('img')
         td.color = 'empty'
-        if (i,j) in [(3,3),(4,4)]:
-            img.src = 'https://raw.githubusercontent.com/pukie/othello-game/master/images/white.png'
-            td.color = 'white'
-        elif (i,j) in [(3,4),(4,3)]:
-            img.src = 'https://raw.githubusercontent.com/pukie/othello-game/master/images/black.png'
-            td.color = 'black'
+        td.addEventListener('click', pyodide.create_proxy(on_click))
+        img = document.createElement('img')
         img.id = 'img%d_%d' % (i, j)
         td.appendChild(img)
         tr.appendChild(td)
     board.appendChild(tr)
+
+do_flip(3, 3, 'white')
+do_flip(4, 4, 'white')
+do_flip(3, 4, 'black')
+do_flip(4, 3, 'black')
+
+color = 'black'
   </py-script>
 </body>
 </html>
