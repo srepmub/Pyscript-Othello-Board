@@ -39,11 +39,9 @@ def flip_stones(move):
     for direction in directions:
         if flip_in_direction(move[0], move[1], direction):
              x, y = move[0]+direction[0], move[1]+direction[1]
-             id_ = '%d_%d' % (x, y)
              while document.getElementById('%d_%d' % (x, y)).color != color:
                  do_flip(x, y, color)
                  x, y = x+direction[0], y+direction[1]
-                 id = '%d_%d' % (x, y)
     do_flip(move[0], move[1], color)
 
 def possible_move(x, y):
